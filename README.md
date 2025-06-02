@@ -1,291 +1,167 @@
-# LangChain MCP Adapters
+# FastnAgent with MCP Tools
 
-This library provides a lightweight wrapper that makes [Anthropic Model Context Protocol (MCP)](https://modelcontextprotocol.io/introduction) tools compatible with [LangChain](https://github.com/langchain-ai/langchain) and [LangGraph](https://github.com/langchain-ai/langgraph).
+A powerful agent for accessing and using MCP (Model Context Protocol) tools through natural language commands. This project enables users to interact with various tools like MongoDB, Gmail, Google Calendar, and LinkedIn through a simple chat interface.
 
-![MCP](static/img/mcp.png)
+## What it does
 
-## Features
+FastnAgent connects to MCP servers and provides a conversational interface to:
 
-- 🛠️ Convert MCP tools into [LangChain tools](https://python.langchain.com/docs/concepts/tools/) that can be used with [LangGraph](https://github.com/langchain-ai/langgraph) agents
-- 📦 A client implementation that allows you to connect to multiple MCP servers and load tools from them
+- Query and manipulate MongoDB databases
+- Send and read emails through Gmail
+- Create and manage Google Calendar events
+- Post and interact with LinkedIn content
+- And any other MCP-compatible tools
 
-## Installation
+The agent uses LangChain and GPT models to interpret natural language commands and convert them into the appropriate tool calls, making complex operations more accessible.
 
-```bash
-pip install langchain-mcp-adapters
-```
+## Setup
 
-## Quickstart
+### Prerequisites
 
-Here is a simple example of using the MCP tools with a LangGraph agent.
+- Python 3.8+
+- OpenAI API key
+- Access to MCP server(s)
 
-```bash
-pip install langchain-mcp-adapters langgraph "langchain[openai]"
+### Installation
 
-export OPENAI_API_KEY=<your_api_key>
-```
-
-### Server
-
-First, let's create an MCP server that can add and multiply numbers.
-
-```python
-# math_server.py
-from mcp.server.fastmcp import FastMCP
-
-mcp = FastMCP("Math")
-
-@mcp.tool()
-def add(a: int, b: int) -> int:
-    """Add two numbers"""
-    return a + b
-
-@mcp.tool()
-def multiply(a: int, b: int) -> int:
-    """Multiply two numbers"""
-    return a * b
-
-if __name__ == "__main__":
-    mcp.run(transport="stdio")
-```
-
-### Client
-
-```python
-# Create server parameters for stdio connection
-from mcp import ClientSession, StdioServerParameters
-from mcp.client.stdio import stdio_client
-
-from langchain_mcp_adapters.tools import load_mcp_tools
-from langgraph.prebuilt import create_react_agent
-
-server_params = StdioServerParameters(
-    command="python",
-    # Make sure to update to the full absolute path to your math_server.py file
-    args=["/path/to/math_server.py"],
-)
-
-async with stdio_client(server_params) as (read, write):
-    async with ClientSession(read, write) as session:
-        # Initialize the connection
-        await session.initialize()
-
-        # Get tools
-        tools = await load_mcp_tools(session)
-
-        # Create and run the agent
-        agent = create_react_agent("openai:gpt-4.1", tools)
-        agent_response = await agent.ainvoke({"messages": "what's (3 + 5) x 12?"})
-```
-
-## Multiple MCP Servers
-
-The library also allows you to connect to multiple MCP servers and load tools from them:
-
-### Server
-
-```python
-# math_server.py
-...
-
-# weather_server.py
-from typing import List
-from mcp.server.fastmcp import FastMCP
-
-mcp = FastMCP("Weather")
-
-@mcp.tool()
-async def get_weather(location: str) -> str:
-    """Get weather for location."""
-    return "It's always sunny in New York"
-
-if __name__ == "__main__":
-    mcp.run(transport="streamable-http")
-```
+1. Clone the repository:
 
 ```bash
-python weather_server.py
+git clone https://github.com/yourusername/langchain-mcp-adapters.git
+cd langchain-mcp-adapters
 ```
 
-### Client
+2. Create a virtual environment and install dependencies:
+
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+3. Create a `.env` file with your OpenAI API key:
+
+```
+OPENAI_API_KEY=your_openai_api_key_here
+```
+
+### Running the application
+
+Run the application with:
+
+```bash
+python example.py
+```
+
+You can also provide arguments directly:
+
+```bash
+python example.py --api-key your_openai_key --server-name fastn --transport streamable_http --url "https://your-mcp-server.com/shttp/?api_key=your_api_key&space_id=your_space_id" --session user1
+```
+
+When prompted, enter your OpenAI API key if not already set in the environment.
+
+## Usage
+
+1. Start the application using the command above
+2. The agent will connect to the default MCP server or the ones you configure
+3. Type your requests in natural language, for example:
+   - "Show me the last 10 emails in my inbox"
+   - "Create a calendar event for tomorrow at 2pm titled 'Team Meeting'"
+   - "Query my MongoDB database for all users who signed up last month"
+4. The agent will process your request, make the necessary tool calls, and return the results
+
+## API Usage
+
+You can also use FastnAgent as an API in your own applications:
 
 ```python
-from langchain_mcp_adapters.client import MultiServerMCPClient
-from langgraph.prebuilt import create_react_agent
+from app import FastnAgent
+import asyncio
 
-client = MultiServerMCPClient(
-    {
-        "math": {
-            "command": "python",
-            # Make sure to update to the full absolute path to your math_server.py file
-            "args": ["/path/to/math_server.py"],
-            "transport": "stdio",
-        },
-        "weather": {
-            # make sure you start your weather server on port 8000
-            "url": "http://localhost:8000/mcp",
-            "transport": "streamable_http",
-        }
+async def example():
+    agent = FastnAgent(openai_api_key="your_key_here")
+    await agent.initialize()
+    
+    response = await agent.process_message("Create a new Google Doc titled 'Meeting Notes'")
+    print(response["assistant_message"])
+
+asyncio.run(example())
+```
+
+## Advanced Configuration
+
+### Standard Configuration
+
+You can configure multiple MCP servers by providing a dictionary when initializing FastnAgent:
+
+```python
+mcp_servers = {
+    "fastn": {
+        "transport": "streamable_http",
+        "url": "https://your-mcp-server.com/shttp/?api_key=your_api_key&space_id=your_space_id"
+    },
+    "other_server": {
+        "transport": "sse",
+        "url": "http://another-server.com/sse/?api_key=another_key"
     }
-)
-tools = await client.get_tools()
-agent = create_react_agent("openai:gpt-4.1", tools)
-math_response = await agent.ainvoke({"messages": "what's (3 + 5) x 12?"})
-weather_response = await agent.ainvoke({"messages": "what is the weather in nyc?"})
+}
+
+agent = FastnAgent(openai_api_key="your_key", mcp_servers=mcp_servers)
 ```
 
-> [!note]
-> Example above will start a new MCP `ClientSession` for each tool invocation. If you would like to explicitly start a session for a given server, you can do:
->
->    ```python
->    from langchain_mcp_adapters.tools import load_mcp_tools
->
->    client = MultiServerMCPClient({...})
->    async with client.session("math") as session:
->        tools = await load_mcp_tools(session)
->    ```
+### Multi-Tenant Configuration
 
-## Streamable HTTP
+FastnAgent supports multi-tenant configurations for organizations that need to manage multiple workspaces or users.
 
-MCP now supports [streamable HTTP](https://modelcontextprotocol.io/specification/2025-03-26/basic/transports#streamable-http) transport.
-
-To start an [example](examples/servers/streamable-http-stateless/) streamable HTTP server, run the following:
-
-```bash
-cd examples/servers/streamable-http-stateless/
-uv run mcp-simple-streamablehttp-stateless --port 3000
-```
-
-Alternatively, you can use FastMCP directly (as in the examples above).
-
-To use it with Python MCP SDK `streamablehttp_client`:
-
-```python
-# Use server from examples/servers/streamable-http-stateless/
-
-from mcp import ClientSession
-from mcp.client.streamable_http import streamablehttp_client
-
-from langgraph.prebuilt import create_react_agent
-from langchain_mcp_adapters.tools import load_mcp_tools
-
-async with streamablehttp_client("http://localhost:3000/mcp") as (read, write, _):
-    async with ClientSession(read, write) as session:
-        # Initialize the connection
-        await session.initialize()
-
-        # Get tools
-        tools = await load_mcp_tools(session)
-        agent = create_react_agent("openai:gpt-4.1", tools)
-        math_response = await agent.ainvoke({"messages": "what's (3 + 5) x 12?"})
-```
-
-Use it with `MultiServerMCPClient`:
-
-```python
-# Use server from examples/servers/streamable-http-stateless/
-from langchain_mcp_adapters.client import MultiServerMCPClient
-from langgraph.prebuilt import create_react_agent
-
-client = MultiServerMCPClient(
-    {
-        "math": {
-            "transport": "streamable_http",
-            "url": "http://localhost:3000/mcp"
-        },
-    }
-)
-tools = await client.get_tools()
-agent = create_react_agent("openai:gpt-4.1", tools)
-math_response = await agent.ainvoke({"messages": "what's (3 + 5) x 12?"})
-```
-
-## Using with LangGraph StateGraph
-
-```python
-from langchain_mcp_adapters.client import MultiServerMCPClient
-from langgraph.graph import StateGraph, MessagesState, START
-from langgraph.prebuilt import ToolNode, tools_condition
-
-from langchain.chat_models import init_chat_model
-model = init_chat_model("openai:gpt-4.1")
-
-client = MultiServerMCPClient(
-    {
-        "math": {
-            "command": "python",
-            # Make sure to update to the full absolute path to your math_server.py file
-            "args": ["./examples/math_server.py"],
-            "transport": "stdio",
-        },
-        "weather": {
-            # make sure you start your weather server on port 8000
-            "url": "http://localhost:8000/mcp",
-            "transport": "streamable_http",
-        }
-    }
-)
-tools = await client.get_tools()
-
-def call_model(state: MessagesState):
-    response = model.bind_tools(tools).invoke(state["messages"])
-    return {"messages": response}
-
-builder = StateGraph(MessagesState)
-builder.add_node(call_model)
-builder.add_node(ToolNode(tools))
-builder.add_edge(START, "call_model")
-builder.add_conditional_edges(
-    "call_model",
-    tools_condition,
-)
-builder.add_edge("tools", "call_model")
-graph = builder.compile()
-math_response = await graph.ainvoke({"messages": "what's (3 + 5) x 12?"})
-weather_response = await graph.ainvoke({"messages": "what is the weather in nyc?"})
-```
-
-## Using with LangGraph API Server
-
-> [!TIP]
-> Check out [this guide](https://langchain-ai.github.io/langgraph/tutorials/langgraph-platform/local-server/) on getting started with LangGraph API server.
-
-If you want to run a LangGraph agent that uses MCP tools in a LangGraph API server, you can use the following setup:
-
-```python
-# graph.py
-from contextlib import asynccontextmanager
-from langchain_mcp_adapters.client import MultiServerMCPClient
-from langgraph.prebuilt import create_react_agent
-
-async def make_graph():
-    client = MultiServerMCPClient(
-        {
-            "math": {
-                "command": "python",
-                # Make sure to update to the full absolute path to your math_server.py file
-                "args": ["/path/to/math_server.py"],
-                "transport": "stdio",
-            },
-            "weather": {
-                # make sure you start your weather server on port 8000
-                "url": "http://localhost:8000/mcp",
-                "transport": "streamable_http",
-            }
-        }
-    )
-    tools = await client.get_tools()
-    agent = create_react_agent("openai:gpt-4.1", tools)
-    return agent
-```
-
-In your [`langgraph.json`](https://langchain-ai.github.io/langgraph/cloud/reference/cli/#configuration-file) make sure to specify `make_graph` as your graph entrypoint:
+#### Workspace URL Configuration
 
 ```json
 {
-  "dependencies": ["."],
-  "graphs": {
-    "agent": "./graph.py:make_graph"
+  "mcpServers": {
+    "fastn": {
+      "transport": "streamable_http",
+      "url": "https://mcp.ucl.dev/shttp/?api_key=45056b6686c080ff487468bfe5485e8f0533dacd&space_id=7efa79f9-bd46-46c2-b1d7-7680ba7442eb"
+    }
   }
 }
 ```
+
+#### Multi-Tenant Base URL Configuration
+
+```json
+{
+  "mcpServers": {
+    "fastn": {
+      "transport": "streamable_http",
+      "url": "https://mcp.ucl.dev/shttp/?space_id=7efa79f9-bd46-46c2-b1d7-7680ba7442eb&tenant_id=test-tenant&auth_token=customAuthToken"
+    }
+  }
+}
+```
+
+To use these configurations in your code:
+
+```python
+import json
+
+# Load configuration from a file
+with open('config.json', 'r') as f:
+    config = json.load(f)
+
+# Initialize the agent with the loaded configuration
+agent = FastnAgent(openai_api_key="your_key", mcp_servers=config["mcpServers"])
+await agent.initialize()
+```
+
+## Development
+
+To extend the functionality:
+
+1. Modify the `FastnAgent` class in `app.py` to add new features
+2. Add new MCP servers and tools as needed
+3. Implement additional error handling or tool-specific logic
+
+## License
+
+MIT 
