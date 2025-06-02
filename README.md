@@ -1,14 +1,33 @@
-# FastnAgent with MCP Tools
+# Fastn MCP and LangChain Integration
 
-A powerful agent for accessing and using MCP (Model Context Protocol) tools through natural language commands. This project enables users to interact with various tools like MongoDB, Gmail, Google Calendar, and LinkedIn through a simple chat interface.
+This repository demonstrates how to integrate the Fastn MCP (Model Context Protocol) server with the LangChain MCP Adapter and LangChain agent, enabling secure, scalable, and multi-tenant AI-powered automation for SaaS products.
+
+## What is Fastn.ai and UCL?
+
+[Fastn.ai](https://fastn.ai) provides the Fastn UCL (Unified Command Layer), a secure, scalable integration layer that connects AI agents to real-world tools and data. UCL acts as a universal remote control for AI agents, allowing them to interact with external services (like Slack, Gmail, Google Calendar, and more) while maintaining strict security, context, and tenant isolation.
+
+**Fastn provides access to over 1600+ tools** through its extensive library of connectors, enabling your AI agents to automate and orchestrate workflows across a vast ecosystem of SaaS apps and services.
+
+**Key features of Fastn UCL:**
+- **Multitenancy:** Native support for true per-tenant isolation and routing, so each customer's data and workflows are kept separate and secure.
+- **Centralized Integration:** Manage all connectors, authentication, and routing logic in one place, reducing development and maintenance effort.
+- **Scalability:** Easily onboard new customers or support new tools without duplicating workflows.
+- **Security:** Built-in authentication, access control, and monitoring for all actions performed by AI agents.
+- **Production-Ready:** Fully managed, MCP-compliant platform that handles the complexities of integration, authentication, and tenant isolation for you.
+
+> **Note:** In this repository, we use the term "Fastn MCP" to refer to the Fastn UCL server, as it implements the open Model Context Protocol (MCP) for tool access.
+
+For more details, see the [Fastn UCL documentation](https://docs.fastn.ai/ucl-unified-command-layer/about-fastn-ucl).
+
+---
 
 ## Integration Overview
 
-This repository demonstrates how to integrate Fastn MCP with the LangChain MCP Adapter and LangChain agent. The Fastn MCP server is accessed via the HTTP streamable endpoint (`https://mcp.ucl.dev/shttp/`) to provide tool access for LangChain-based agents.
+This project shows how to connect a LangChain agent to the Fastn MCP server using the HTTP streamable endpoint (`https://mcp.ucl.dev/shttp/`). This enables your agent to access a wide range of tools and services, with all the benefits of Fastn's multitenant, secure, and scalable architecture.
 
 ## What it does
 
-FastnAgent connects to MCP servers and provides a conversational interface to:
+FastnAgent connects to Fastn MCP servers and provides a conversational interface to:
 
 - Query and manipulate MongoDB databases
 - Send and read emails through Gmail
@@ -24,7 +43,7 @@ The agent uses LangChain and GPT models to interpret natural language commands a
 
 - Python 3.8+
 - OpenAI API key
-- Access to MCP server(s)
+- Access to Fastn MCP server(s)
 
 ### Installation
 
@@ -140,7 +159,7 @@ await agent.initialize()
 To extend the functionality:
 
 1. Modify the `FastnAgent` class in `app.py` to add new features
-2. Add new MCP servers and tools as needed
+2. Add new Fastn MCP servers and tools as needed
 3. Implement additional error handling or tool-specific logic
 
 ## License
