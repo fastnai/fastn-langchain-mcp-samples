@@ -27,8 +27,8 @@ The agent uses LangChain and GPT models to interpret natural language commands a
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/langchain-mcp-adapters.git
-cd langchain-mcp-adapters
+git clone https://github.com/fastnai/fastn-langchain-mcp-samples.git
+cd fastn-langchain-mcp-samples
 ```
 
 2. Create a virtual environment and install dependencies:
@@ -121,7 +121,7 @@ FastnAgent supports multi-tenant configurations for organizations that need to m
   "mcpServers": {
     "fastn": {
       "transport": "streamable_http",
-      "url": "https://mcp.ucl.dev/shttp/?api_key=45056b6686c080ff487468bfe5485e8f0533dacd&space_id=7efa79f9-bd46-46c2-b1d7-7680ba7442eb"
+      "url": "https://your-mcp-server.com/shttp/?api_key=your_api_key&space_id=your_space_id"
     }
   }
 }
@@ -134,7 +134,7 @@ FastnAgent supports multi-tenant configurations for organizations that need to m
   "mcpServers": {
     "fastn": {
       "transport": "streamable_http",
-      "url": "https://mcp.ucl.dev/shttp/?space_id=7efa79f9-bd46-46c2-b1d7-7680ba7442eb&tenant_id=test-tenant&auth_token=customAuthToken"
+      "url": "https://your-mcp-server.com/shttp/?space_id=your_space_id&tenant_id=your_tenant_id&auth_token=your_auth_token"
     }
   }
 }
