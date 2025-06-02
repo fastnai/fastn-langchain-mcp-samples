@@ -2,6 +2,10 @@
 
 A powerful agent for accessing and using MCP (Model Context Protocol) tools through natural language commands. This project enables users to interact with various tools like MongoDB, Gmail, Google Calendar, and LinkedIn through a simple chat interface.
 
+## Integration Overview
+
+This repository demonstrates how to integrate Fastn MCP with the LangChain MCP Adapter and LangChain agent. The Fastn MCP server is accessed via the HTTP streamable endpoint (`https://mcp.ucl.dev/shttp/`) to provide tool access for LangChain-based agents.
+
 ## What it does
 
 FastnAgent connects to MCP servers and provides a conversational interface to:
@@ -56,7 +60,7 @@ python example.py
 You can also provide arguments directly:
 
 ```bash
-python example.py --api-key your_openai_key --server-name fastn --transport streamable_http --url "https://your-mcp-server.com/shttp/?api_key=your_api_key&space_id=your_space_id" --session user1
+python example.py --api-key your_openai_key --server-name fastn --transport streamable_http --url "https://mcp.ucl.dev/shttp/?api_key=YOUR_API_KEY&space_id=YOUR_SPACE_ID" --session user1
 ```
 
 When prompted, enter your OpenAI API key if not already set in the environment.
@@ -64,7 +68,7 @@ When prompted, enter your OpenAI API key if not already set in the environment.
 ## Usage
 
 1. Start the application using the command above
-2. The agent will connect to the default MCP server or the ones you configure
+2. The agent will connect to the Fastn MCP server you configure
 3. Type your requests in natural language, for example:
    - "Show me the last 10 emails in my inbox"
    - "Create a calendar event for tomorrow at 2pm titled 'Team Meeting'"
@@ -89,56 +93,33 @@ async def example():
 asyncio.run(example())
 ```
 
-## Advanced Configuration
-
-### Standard Configuration
-
-You can configure multiple MCP servers by providing a dictionary when initializing FastnAgent:
-
-```python
-mcp_servers = {
-    "fastn": {
-        "transport": "streamable_http",
-        "url": "https://your-mcp-server.com/shttp/?api_key=your_api_key&space_id=your_space_id"
-    },
-    "other_server": {
-        "transport": "sse",
-        "url": "http://another-server.com/sse/?api_key=another_key"
-    }
-}
-
-agent = FastnAgent(openai_api_key="your_key", mcp_servers=mcp_servers)
-```
-
-### Multi-Tenant Configuration
-
-FastnAgent supports multi-tenant configurations for organizations that need to manage multiple workspaces or users.
-
-#### Workspace URL Configuration
+## Fastn MCP Server Configuration Example
 
 ```json
 {
   "mcpServers": {
     "fastn": {
       "transport": "streamable_http",
-      "url": "https://your-mcp-server.com/shttp/?api_key=your_api_key&space_id=your_space_id"
+      "url": "https://mcp.ucl.dev/shttp/?api_key=YOUR_API_KEY&space_id=YOUR_SPACE_ID"
     }
   }
 }
 ```
 
-#### Multi-Tenant Base URL Configuration
+### Multi-Tenant Example
 
 ```json
 {
   "mcpServers": {
     "fastn": {
       "transport": "streamable_http",
-      "url": "https://your-mcp-server.com/shttp/?space_id=your_space_id&tenant_id=your_tenant_id&auth_token=your_auth_token"
+      "url": "https://mcp.ucl.dev/shttp/?space_id=YOUR_SPACE_ID&tenant_id=YOUR_TENANT_ID&auth_token=YOUR_AUTH_TOKEN"
     }
   }
 }
 ```
+
+- Replace `YOUR_API_KEY`, `YOUR_SPACE_ID`, `YOUR_TENANT_ID`, and `YOUR_AUTH_TOKEN` with your actual credentials.
 
 To use these configurations in your code:
 
